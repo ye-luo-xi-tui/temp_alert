@@ -6,7 +6,7 @@
 #define TX_GPIO_NUM 7
 #define RX_GPIO_NUM 6
 
-void initTempSensor(temperature_sensor_handle_t* temp_sensor_handle,double min_temp,double max_temp)
+void initTempSensor(temperature_sensor_handle_t* temp_sensor_handle,int min_temp,int max_temp)
 {
 
   temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(min_temp,max_temp);
@@ -30,6 +30,7 @@ void app_main(void)
     float tsens_value;
     ESP_ERROR_CHECK(temperature_sensor_get_celsius(temp_sensor,&tsens_value));
     twai_message_t tx_msg = {.data_length_code=1,.identifier=0x100,.self=0,.extd=0};
+    printf("temp:%f\n",tsens_value);
     tx_msg.data[0] = (int)tsens_value;
     ESP_ERROR_CHECK(twai_transmit(&tx_msg,portMAX_DELAY));
     vTaskDelay(pdMS_TO_TICKS(1));

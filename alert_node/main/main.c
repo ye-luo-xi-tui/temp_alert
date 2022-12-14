@@ -4,7 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define GPIO_OUTPUT_PIN_SEL (1ULL<<10)
+#define GPIO_OUTPUT_PIN_SEL ((1ULL<<GPIO_NUM_27)|(1ULL<<GPIO_NUM_26))
 #define TX_GPIO_NUM 2
 #define RX_GPIO_NUM 4
 
@@ -16,10 +16,15 @@ void tempStatusUpdate(void *n) {
 
   while (1) {
     ESP_ERROR_CHECK(twai_receive(&rx_message, portMAX_DELAY));
-    if (rx_message.identifier == 0x100)
+    if (rx_message.identifier == 0x100) {
       temp = rx_message.data[0];
+    }
     if (temp > 50)
       halted = true;
+    else {
+      printf("current_temp:%d,threshold:%d\n", temp, 50);
+      halted = false;
+    }
   }
 }
 
@@ -47,8 +52,14 @@ void app_main(void) {
   while (1) {
     cnt++;
     vTaskDelay(1000 / portTICK_PERIOD_MS);
-    if (halted)
-      gpio_set_level(10, cnt % 2);
+    if (halted) {
+      printf("halted!\n");
+      ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_27, 0));
+      ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_26, cnt % 2));
+    } else {
+      ESP_ERROR_CHECK(gpio_set_level(27, 1));
+      ESP_ERROR_CHECK(gpio_set_level(26, 0));
+    }
   }
 
 }
